@@ -17,45 +17,36 @@ import java.util.Map;
 import java.util.HashMap;
 
 @Service
-public class FirebaseUserManager extends FirebaseSetupService
-{
+public class FirebaseUserManager extends FirebaseSetupService {
     private static final Logger logger = LoggerFactory.getLogger(FirebaseUserManager.class);
 
     @Autowired
-    public FirebaseUserManager(RestTemplate restTemplate, Dotenv dotenv)
-    {
+    public FirebaseUserManager(RestTemplate restTemplate, Dotenv dotenv) {
         super(restTemplate, dotenv);
     }
 
-    public String createUser(@NonNull String email, @NonNull String password)
-    {
+    public String createUser(@NonNull String email, @NonNull String password) {
         String url = buildUrl(FirebaseEndpoint.SIGN_UP);
         HttpEntity<Map<String, String>> entity = createAuthRequestEntity(email, password);
 
-        try
-        {
+        try {
             ResponseEntity<String> response = restTemplate.exchange(
                     url,
                     HttpMethod.POST,
                     entity,
-                    String.class
-            );
+                    String.class);
 
             return response.getBody();
-        }
-        catch (HttpStatusCodeException e)
-        {
+        } catch (HttpStatusCodeException e) {
             logger.error(
                     "Failed to create user: {}",
-                    e.getStatusCode(), e
-            );
+                    e.getStatusCode(), e);
 
             throw new RuntimeException("Failed to create user: " + e.getStatusCode(), e);
         }
     }
 
-    public void deleteUser(@NonNull String idToken)
-    {
+    public void deleteUser(@NonNull String idToken) {
         String url = buildUrl(FirebaseEndpoint.DELETE_ACCOUNT);
 
         Map<String, String> body = new HashMap<>();
@@ -63,27 +54,21 @@ public class FirebaseUserManager extends FirebaseSetupService
 
         HttpEntity<Map<String, String>> entity = createRequestEntity(body);
 
-        try
-        {
+        try {
             ResponseEntity<String> response = restTemplate.exchange(
                     url,
                     HttpMethod.POST,
                     entity,
-                    String.class
-            );
+                    String.class);
 
             logger.info(
                     "User deleted successfully, response: {}",
-                    response.getBody()
-            );
-        }
-        catch (HttpStatusCodeException e)
-        {
+                    response.getBody());
+        } catch (HttpStatusCodeException e) {
             logger.error(
                     "Failed to delete user: {} - {}",
                     e.getStatusCode(),
-                    e.getResponseBodyAsString(), e
-            );
+                    e.getResponseBodyAsString(), e);
 
             throw new RuntimeException("Failed to delete user: " + e.getStatusCode(), e);
         }

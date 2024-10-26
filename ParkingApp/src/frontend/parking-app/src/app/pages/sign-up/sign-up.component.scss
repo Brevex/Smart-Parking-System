@@ -1,0 +1,50 @@
+.error-message {
+    color: red;
+    margin-top: 1rem;
+}
+  
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #17052A;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    padding: 2rem;
+  
+    .input {
+        padding: 1rem;
+        margin-top: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: white;
+        width: 14rem;
+    }
+  
+    .button {
+        padding: 1rem;
+        border: none;
+        border-radius: 5px;
+        background-color: #080010;
+        font-weight: bolder;
+        color: white;
+        cursor: pointer;
+        margin-top: 1.5rem;
+  
+        &:hover {
+            background-color: #330066;
+        }
+    }
+  
+    .form-text {
+        color: white;
+        margin-top: 1rem;
+        text-align: center;
+  
+        .form-link {
+            color: #fff;
+            font-weight: bold;
+        }
+    }
+}
+  

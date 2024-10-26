@@ -15,42 +15,32 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class SecurityFilter extends OncePerRequestFilter
-{
+public class SecurityFilter extends OncePerRequestFilter {
     private final TokenService tokenService;
 
-    public SecurityFilter(TokenService tokenService)
-    {
+    public SecurityFilter(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain
-    ) throws ServletException, IOException
-    {
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
 
-        if (token != null)
-        {
+        if (token != null) {
             String email = tokenService.validateToken(token);
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null)
-            {
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = new User(null, email, null);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user,
                         null,
-                        user.getAuthorities()
-                );
-
+                        user.getAuthorities());
                 authentication
                         .setDetails(new WebAuthenticationDetailsSource()
-                        .buildDetails(request)
-                );
-
+                                .buildDetails(request));
                 SecurityContextHolder
                         .getContext()
                         .setAuthentication(authentication);
@@ -59,12 +49,10 @@ public class SecurityFilter extends OncePerRequestFilter
         filterChain.doFilter(request, response);
     }
 
-    private String recoverToken(HttpServletRequest request)
-    {
+    private String recoverToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer "))
-        {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
         }
         return null;

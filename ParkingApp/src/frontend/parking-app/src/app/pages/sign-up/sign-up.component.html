@@ -1,0 +1,20 @@
+<div class="form-container">
+  <form (ngSubmit)="createUser()" class="form">
+    <a routerLink="/" class="userIcon">
+      <img src="assets/icons/user.png" alt="User Icon"/>
+    </a>
+
+    <input [(ngModel)]="email" name="email" type="email" placeholder="Email" required class="input" />
+    <input [(ngModel)]="confirmEmail" name="confirmEmail" type="email" placeholder="Confirm Email" required class="input" />
+    <input [(ngModel)]="password" name="password" type="password" placeholder="Password" required class="input" />
+    <input [(ngModel)]="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password" required class="input" />
+
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <button type="submit" class="button">Sign Up</button>
+
+    <div class="form-text">
+      <p>Already have an account?</p>
+      <a routerLink="/" class="form-link">Sign in here</a>
+    </div>
+  </form>
+</div>

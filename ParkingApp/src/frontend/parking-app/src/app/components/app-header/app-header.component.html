@@ -1,0 +1,9 @@
+<header>
+    <nav class="navbar">
+      <a [routerLink]="logoLink" class="logo">
+        <img src="assets/icons/navbarLogo.png" alt="Smart Parking logo" class="logo-image"/>
+      </a>
+      <button *ngIf="loggedIn" (click)="logout()" class="logout-button">Logout</button>
+    </nav>
+</header>
+  

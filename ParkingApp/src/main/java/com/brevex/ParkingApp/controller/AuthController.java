@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:3000")
-public class AuthController
-{
+public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final FirebaseAuthManager firebaseAuthManager;
@@ -28,11 +27,9 @@ public class AuthController
 
     @Autowired
     public AuthController(FirebaseAuthManager firebaseAuthManager,
-                          FirebaseUserManager firebaseUserManager,
-                          FirebaseTokenService firebaseTokenService,
-                          TokenService tokenService
-    )
-    {
+            FirebaseUserManager firebaseUserManager,
+            FirebaseTokenService firebaseTokenService,
+            TokenService tokenService) {
         this.firebaseAuthManager = firebaseAuthManager;
         this.firebaseUserManager = firebaseUserManager;
         this.firebaseTokenService = firebaseTokenService;
@@ -40,16 +37,14 @@ public class AuthController
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestParam String email, @RequestParam String password)
-    {
+    public ResponseEntity<String> createUser(@RequestParam String email, @RequestParam String password) {
         String userId = firebaseUserManager.createUser(email, password);
 
         return ResponseEntity.ok("User created with ID: " + userId);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password)
-    {
+    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
         User user = firebaseAuthManager.authenticateUser(email, password);
         String jwtToken = tokenService.generateToken(user);
 
@@ -59,28 +54,22 @@ public class AuthController
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader)
-    {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
 
-        try
-        {
+        try {
             String email = tokenService.validateToken(token);
 
             firebaseTokenService.deleteStoredIdToken(email);
 
             return ResponseEntity.ok("User logged out successfully");
-        }
-        catch (AuthenticationServiceException e)
-        {
+        } catch (AuthenticationServiceException e) {
             logger.error("Invalid or expired token", e);
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid or expired token");
-        }
-        catch (RuntimeException e)
-        {
+        } catch (RuntimeException e) {
             logger.error("Failed to logout user", e);
 
             return ResponseEntity
@@ -90,17 +79,14 @@ public class AuthController
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteUser(@RequestHeader("Authorization") String authHeader)
-    {
+    public ResponseEntity<String> deleteUser(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
 
-        try
-        {
+        try {
             String email = tokenService.validateToken(token);
             String idToken = firebaseTokenService.retrieveStoredIdToken(email);
 
-            if (idToken == null)
-            {
+            if (idToken == null) {
                 throw new RuntimeException("Failed to retrieve ID token");
             }
 
@@ -108,17 +94,13 @@ public class AuthController
             firebaseTokenService.deleteStoredIdToken(email);
 
             return ResponseEntity.ok("User deleted successfully");
-        }
-        catch (AuthenticationServiceException e)
-        {
+        } catch (AuthenticationServiceException e) {
             logger.error("Invalid or expired token", e);
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid or expired token");
-        }
-        catch (RuntimeException e)
-        {
+        } catch (RuntimeException e) {
             logger.error("Failed to delete user", e);
 
             return ResponseEntity
@@ -129,12 +111,10 @@ public class AuthController
 }
 
 @Getter
-class AuthResponse
-{
+class AuthResponse {
     private final String token;
 
-    public AuthResponse(String token)
-    {
+    public AuthResponse(String token) {
         this.token = token;
     }
 }

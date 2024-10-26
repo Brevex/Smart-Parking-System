@@ -15,20 +15,16 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 @Service
-public class TokenService
-{
+public class TokenService {
     private final String secret;
 
     @Autowired
-    public TokenService(Dotenv dotenv)
-    {
+    public TokenService(Dotenv dotenv) {
         this.secret = dotenv.get("JWT_SECRET");
     }
 
-    public String generateToken(User user)
-    {
-        try
-        {
+    public String generateToken(User user) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
 
             return JWT.create()
@@ -36,17 +32,13 @@ public class TokenService
                     .withSubject(user.getLogin())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
-        }
-        catch (JWTCreationException exception)
-        {
+        } catch (JWTCreationException exception) {
             throw new RuntimeException("Could not generate token", exception);
         }
     }
 
-    public String validateToken(String token)
-    {
-        try
-        {
+    public String validateToken(String token) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
 
             return JWT.require(algorithm)
@@ -54,15 +46,12 @@ public class TokenService
                     .build()
                     .verify(token)
                     .getSubject();
-        }
-        catch (JWTVerificationException exception)
-        {
+        } catch (JWTVerificationException exception) {
             throw new AuthenticationServiceException("Invalid or expired token", exception);
         }
     }
 
-    private Instant genExpirationDate()
-    {
+    private Instant genExpirationDate() {
         return LocalDateTime
                 .now()
                 .plusHours(2)
