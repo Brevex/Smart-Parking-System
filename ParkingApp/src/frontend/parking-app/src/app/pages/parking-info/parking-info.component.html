@@ -1,0 +1,33 @@
+<div class="parking-info-container">
+  <div class="parking-info-grid">
+    <app-parking-info-card
+      title="Parking Spaces"
+      [value]="availableParkingSpaces">
+    </app-parking-info-card>
+
+    <app-parking-info-card
+      title="Last Valid ID"
+      [value]="lastValidID">
+    </app-parking-info-card>
+
+    <app-parking-info-card
+      title="Last Invalid ID"
+      [value]="lastInvalidID">
+    </app-parking-info-card>
+
+    <app-parking-info-card
+      title="Invalid Attempts"
+      [value]="invalidAttempts">
+    </app-parking-info-card>
+
+    <app-parking-info-card
+      title="Alarm Activations"
+      [value]="alarmActivations">
+    </app-parking-info-card>
+
+    <app-parking-info-card
+      title="Wi-Fi Status"
+      [value]="isWifiConnected">
+    </app-parking-info-card>
+  </div>
+</div>

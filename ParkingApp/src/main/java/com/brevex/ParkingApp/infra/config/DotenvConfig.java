@@ -5,11 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class DotenvConfig
-{
+public class DotenvConfig {
     @Bean
-    public Dotenv dotenv()
-    {
-        return Dotenv.load();
+    public Dotenv dotenv() {
+        return Dotenv.configure()
+                .directory("ParkingApp/.env")
+                .load();
     }
 }

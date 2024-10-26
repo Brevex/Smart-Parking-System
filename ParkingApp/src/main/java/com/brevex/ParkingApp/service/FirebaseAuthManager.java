@@ -18,18 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class FirebaseAuthManager extends FirebaseSetupService
-{
+public class FirebaseAuthManager extends FirebaseSetupService {
     @Autowired
-    public FirebaseAuthManager(RestTemplate restTemplate, Dotenv dotenv)
-    {
+    public FirebaseAuthManager(RestTemplate restTemplate, Dotenv dotenv) {
         super(restTemplate, dotenv);
     }
 
-    public User authenticateUser(String email, String password)
-    {
-        try
-        {
+    public User authenticateUser(String email, String password) {
+        try {
             String url = buildUrl(FirebaseEndpoint.SIGN_IN);
 
             Map<String, String> request = new HashMap<>();
@@ -44,28 +40,21 @@ public class FirebaseAuthManager extends FirebaseSetupService
                     url,
                     HttpMethod.POST,
                     entity,
-                    new ParameterizedTypeReference<>() {}
-            );
+                    new ParameterizedTypeReference<>() {
+                    });
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null)
-            {
-                String idToken = (String) response.getBody().get("idToken");
+            Map<String, Object> responseBody = response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && responseBody != null) {
+                String idToken = (String) responseBody.get("idToken");
 
                 return new User(idToken, email, null);
-            }
-            else
-            {
+            } else {
                 throw new AuthenticationServiceException("Invalid email or password");
             }
-        }
-        catch (HttpStatusCodeException e)
-        {
+        } catch (HttpStatusCodeException e) {
             throw new AuthenticationServiceException(
-                    "Failed to authenticate user: " + e.getResponseBodyAsString()
-            );
-        }
-        catch (Exception e)
-        {
+                    "Failed to authenticate user: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
             throw new AuthenticationServiceException("Failed to authenticate user");
         }
     }

@@ -1,0 +1,18 @@
+<div class="form-container">
+  <form (ngSubmit)="login()" class="form">
+    <a routerLink="/" class="userIcon">
+      <img src="assets/icons/user.png" alt="User Icon"/>
+    </a>
+
+    <input [(ngModel)]="email" name="email" type="email" placeholder="Email" required class="input" />
+    <input [(ngModel)]="password" name="password" type="password" placeholder="Password" required class="input" />
+
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <button type="submit" class="button">Sign In</button>
+
+    <div class="form-text">
+      <p>Don't have an account?</p>
+      <a routerLink="/sign-up" class="form-link">Sign up here</a>
+    </div>
+  </form>
+</div>
