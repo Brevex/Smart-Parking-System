@@ -1,0 +1,66 @@
+.register-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.register-container h2 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-container .form-group {
+    margin-bottom: 20px;
+}
+
+.register-container .form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.register-container .form-group input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.register-container .form-group input.is-invalid {
+    border-color: red;
+}
+
+.register-container .form-group .invalid-feedback {
+    color: red;
+    font-size: 12px;
+}
+
+.register-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #2ecc71;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.register-container button:disabled {
+    background-color: #7f8c8d;
+    cursor: not-allowed;
+}
+
+.register-container .error-message {
+    color: red;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.register-container p {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.register-container p a {
+    color: #3498db;
+    text-decoration: none;
+}
