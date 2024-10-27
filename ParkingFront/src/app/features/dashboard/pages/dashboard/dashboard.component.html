@@ -1,0 +1,9 @@
+<div *ngIf="loading">Carregando dados...</div>
+
+<div *ngIf="!loading && realtimeData">
+  <pre>{{ realtimeData | json }}</pre>
+</div>
+
+<div *ngIf="!loading && !realtimeData">
+  Nenhum dado disponível.
+</div>

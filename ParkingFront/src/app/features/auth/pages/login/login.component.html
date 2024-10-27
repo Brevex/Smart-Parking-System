@@ -1,0 +1,46 @@
+<div class="login-container">
+  <h2>Login</h2>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        [ngClass]="{ 'is-invalid': submitted && f['email'].errors }"
+      />
+      <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
+        <div *ngIf="f['email'].errors?.['required']">E-mail é obrigatório.</div>
+        <div *ngIf="f['email'].errors?.['email']">E-mail inválido.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        [ngClass]="{ 'is-invalid': submitted && f['password'].errors }"
+      />
+      <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
+        <div *ngIf="f['password'].errors?.['required']">Senha é obrigatória.</div>
+        <div *ngIf="f['password'].errors?.['minlength']">
+          A senha deve ter pelo menos 6 caracteres.
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Carregando...' : 'Entrar' }}
+    </button>
+
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+  </form>
+  <p>
+    Não tem uma conta?
+    <a routerLink="/auth/register">Registre-se aqui</a>
+  </p>
+</div>
