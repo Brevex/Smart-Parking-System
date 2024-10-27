@@ -17,12 +17,13 @@
 <p>Once authenticated in the system, this will be the page with information about the parking lot. All data is updated in real time.</p><br>
 
 <p align="center">
-  <img src="https://github.com/Brevex/Smart-Parking-System/blob/d97caa919aac7260bbe0c3455e2d290ad6e3340d/Readme%20Images/website.png" alt="circuit">
+  <img src="https://github.com/Brevex/Smart-Parking-System/blob/b457f2e879f157751fc310a276dba78b300684ac/Readme%20Images/website.png" alt="website">
 </p>
 
 <h2> &#128293; Firebase setup </h2>
 
-<p>All you need to do to configure the backend with your Firebase project is to go into the <code>/ParkingApp/.env</code> directory and change the <code>FIREBASE_API_KEY</code> and <code>DATABASE_URL</code> variables</p>
+<p>All you need to do to configure the backend with your Firebase project is to go into the <code>/ParkingApp/.env</code> directory and change the <code>FIREBASE_API_KEY</code> and <code>DATABASE_URL</code> variables.
+Also add a string of random alphanumeric characters and insert into <code>JWT_SECRET</code>. If these variables are not configured, the system cannot be started.</p>
 
 ```markdown
 
@@ -32,25 +33,11 @@ DATABASE_URL= ...
 
 JWT_SECRET= ...
 ```
-<p>Then go to the <code>/ParkingApp/src/frontend/src/script/firebase.js</code> directory and insert your database URL</p>
-
-```javascript
-
-const firebaseConfig = {
-    databaseURL: ""
-};
-```
-<p>Finally, go to the <code>/ParkingApp/src/frontend/src/services/realtimeService.js</code> directory and insert your database URL</p>
-
-```javascript
-
-const DATABASE_URL = "";
-```
 
 <br><h2> &#128161; How the Circuit Works? </h2>
 
 <br><p align="center">
-  <img src="https://github.com/Brevex/Smart-Parking-System/blob/4715389b39cf3b1a29214f681eaa7c9dc0345f23/Readme%20Images/circuit.png" alt="circuit">
+  <img src="https://github.com/Brevex/Smart-Parking-System/blob/b457f2e879f157751fc310a276dba78b300684ac/Readme%20Images/circuit.png" alt="circuit">
 </p><br>
 
 <ul>
