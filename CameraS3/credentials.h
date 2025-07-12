@@ -1,8 +1,9 @@
 #ifndef CREDENTIALS_H
 #define CREDENTIALS_H
 
-const char* WIFI_SSID = "";
-const char* WIFI_PASSWORD = "";
-const char* API_TOKEN = "";
+const char* ssid = ""; 
+const char* password = ""; 
+const char* apiToken = ""; 
 
 #endif
+
