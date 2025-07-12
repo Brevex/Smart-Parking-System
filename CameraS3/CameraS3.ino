@@ -1,28 +1,17 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
+
 #include "esp_camera.h"
+#include "credentials.h" 
+#include "camera_pins.h"
 
-const char* ssid = "";
-const char* password = "";
-const char* apiToken = "";
+const int irSensorPin = 40;                 
+const long detectionThreshold = 5000;      
 
-#define PWDN_GPIO_NUM    -1
-#define RESET_GPIO_NUM   -1
-#define XCLK_GPIO_NUM    15
-#define SIOD_GPIO_NUM     4
-#define SIOC_GPIO_NUM     5
-#define Y9_GPIO_NUM      16
-#define Y8_GPIO_NUM      17
-#define Y7_GPIO_NUM      18
-#define Y6_GPIO_NUM      12
-#define Y5_GPIO_NUM      10
-#define Y4_GPIO_NUM      8
-#define Y3_GPIO_NUM      9
-#define Y2_GPIO_NUM      11
-#define VSYNC_GPIO_NUM    6
-#define HREF_GPIO_NUM     7
-#define PCLK_GPIO_NUM    13
+unsigned long objectDetectedTime = 0;       
+bool objectPresent = false;                 
+bool imageHasBeenCaptured = false;          
 
 const char* apiHost = "api.platerecognizer.com";
 const String apiEndpoint = "/v1/plate-reader/";
@@ -49,10 +38,10 @@ bool initCamera() {
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG; 
-  config.frame_size = FRAMESIZE_XGA;   
-  config.jpeg_quality = 12; // Qualidade JPEG (0-63, menor é melhor)
-  config.fb_count = 1;                 
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.frame_size = FRAMESIZE_XGA;
+  config.jpeg_quality = 12;
+  config.fb_count = 1;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
 
@@ -124,8 +113,7 @@ void captureAndSendImage() {
   Serial.println("Imagem enviada. Aguardando resposta...");
 
   long startTime = millis();
-
-  while (client.connected() && !client.available() && millis() - startTime < 10000) { // Timeout aumentado para 10s
+  while (client.connected() && !client.available() && millis() - startTime < 10000) {
     delay(100);
   }
 
@@ -145,7 +133,6 @@ void captureAndSendImage() {
 
   if (responseBody.length() > 0) {
     Serial.println("Resposta da API recebida:");
-
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, responseBody);
 
@@ -157,8 +144,7 @@ void captureAndSendImage() {
 
     JsonArray results = doc["results"];
     if (!results.isNull() && results.size() > 0) {
-      const char* plate = results[0]["plate"]; 
-
+      const char* plate = results[0]["plate"];
       if (plate) {
         Serial.println("======================================");
         Serial.print("PLACA RECONHECIDA: ");
@@ -179,6 +165,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\n\nIniciando sistema de monitoramento de estacionamento...");
 
+  pinMode(irSensorPin, INPUT_PULLUP);
+
   WiFi.begin(ssid, password);
   Serial.print("Conectando ao Wi-Fi");
 
@@ -197,18 +185,36 @@ void setup() {
     ESP.restart();
   }
 
-  Serial.println("\nSistema pronto. Pressione a tecla 'Enter' no Monitor Serial para capturar e processar uma imagem.");
+  Serial.println("\nSistema pronto. Aguardando veículo...");
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    char incomingChar = Serial.read();
+  objectPresent = (digitalRead(irSensorPin) == LOW);
 
-    if (incomingChar == '\n' || incomingChar == '\r') {
-      while(Serial.available() > 0) { Serial.read(); }
+  if (objectPresent && objectDetectedTime == 0) {
+    Serial.println("Veículo detectado. Iniciando contagem de 30 segundos...");
+    objectDetectedTime = millis(); 
+    imageHasBeenCaptured = false;  
+  }
+
+  if (objectPresent && objectDetectedTime > 0 && !imageHasBeenCaptured) {
+    if (millis() - objectDetectedTime > detectionThreshold) {
+      Serial.println("Veículo estável por mais de 5 minutos. Acionando a captura.");
       
       captureAndSendImage();
-      Serial.println("\nSistema pronto. Pressione a tecla 'Enter' para capturar e processar uma imagem.");
+      
+      imageHasBeenCaptured = true;
+      
+      Serial.println("\nCaptura concluída. Aguardando o veículo sair para rearmar o sistema.");
     }
   }
+
+  if (!objectPresent) {
+    if (objectDetectedTime > 0) {
+        Serial.println("Veículo saiu. Sistema rearmado e pronto para a próxima detecção.");
+    }
+    objectDetectedTime = 0;
+  }
+  
+  delay(100);
 }
