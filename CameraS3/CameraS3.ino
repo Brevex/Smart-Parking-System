@@ -1,9 +1,9 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
+
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
-
 #include "esp_camera.h"
 #include "credentials.h" 
 #include "camera_pins.h"
@@ -51,6 +51,7 @@ void MQTT_connect() {
       ESP.restart();
     }
   }
+
   Serial.println("MQTT Conectado!");
 }
 
@@ -114,8 +115,15 @@ bool initCamera() {
 }
 
 void captureAndSendImage() {
-  Serial.println("Capturando imagem...");
-  camera_fb_t *fb = esp_camera_fb_get();
+  Serial.println("Limpando buffer da câmera para obter um quadro novo...");
+  camera_fb_t *fb_clear = esp_camera_fb_get();
+
+  if (fb_clear) {
+    esp_camera_fb_return(fb_clear);
+  }
+
+  Serial.println("Capturando imagem atual...");
+  camera_fb_t *fb = esp_camera_fb_get(); 
 
   if (!fb) {
     Serial.println("Falha ao capturar imagem do framebuffer.");
@@ -125,7 +133,7 @@ void captureAndSendImage() {
   Serial.printf("Imagem capturada! Tamanho: %zu bytes\n", fb->len);
 
   WiFiClientSecure clientSecure;
-  clientSecure.setInsecure();
+  clientSecure.setInsecure(); 
 
   Serial.printf("Conectando ao host: %s\n", apiHost);
 
@@ -170,7 +178,7 @@ void captureAndSendImage() {
   Serial.println("Imagem enviada. Aguardando resposta...");
 
   long startTime = millis();
-  
+
   while (clientSecure.connected() && !clientSecure.available() && millis() - startTime < 10000) {
     delay(100);
   }
@@ -180,6 +188,7 @@ void captureAndSendImage() {
 
   while (clientSecure.available()) {
     String line = clientSecure.readStringUntil('\n');
+
     if (!headersEnded) {
       if (line == "\r") {
         headersEnded = true;
@@ -188,6 +197,7 @@ void captureAndSendImage() {
       responseBody += line;
     }
   }
+
   clientSecure.stop();
 
   if (responseBody.length() > 0) {
@@ -202,8 +212,10 @@ void captureAndSendImage() {
     }
 
     JsonArray results = doc["results"];
+
     if (!results.isNull() && results.size() > 0) {
       const char* plate = results[0]["plate"];
+
       if (plate) {
         Serial.println("======================================");
         Serial.print("PLACA RECONHECIDA: ");
@@ -285,9 +297,9 @@ void loop() {
 
   if (!objectPresent) {
     if (objectDetectedTime > 0) {
-        Serial.println("Veículo saiu. Sistema rearmado e pronto para a próxima detecção.");
-        sendToAdafruitIO("Livre", "");
-        lastPlate = "";
+      Serial.println("Veículo saiu. Sistema rearmado e pronto para a próxima detecção.");
+      sendToAdafruitIO("Livre", "");
+      lastPlate = "";
     }
     objectDetectedTime = 0;
   }
