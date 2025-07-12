@@ -1,13 +1,15 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
+#include "Adafruit_MQTT.h"
+#include "Adafruit_MQTT_Client.h"
 
 #include "esp_camera.h"
 #include "credentials.h" 
 #include "camera_pins.h"
 
 const int irSensorPin = 40;                 
-const long detectionThreshold = 5000;      
+const long detectionThreshold = 5000; 
 
 unsigned long objectDetectedTime = 0;       
 bool objectPresent = false;                 
@@ -15,6 +17,61 @@ bool imageHasBeenCaptured = false;
 
 const char* apiHost = "api.platerecognizer.com";
 const String apiEndpoint = "/v1/plate-reader/";
+
+#define ADAFRUIT_IO_SERVER      "io.adafruit.com"
+#define ADAFRUIT_IO_SERVERPORT  1883
+
+WiFiClient client;
+Adafruit_MQTT_Client mqtt(&client, ADAFRUIT_IO_SERVER, ADAFRUIT_IO_SERVERPORT, ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY);
+Adafruit_MQTT_Publish vagaStatusFeed = Adafruit_MQTT_Publish(&mqtt, ADAFRUIT_IO_USERNAME "/feeds/vaga-status");
+Adafruit_MQTT_Publish vagaPlacaFeed = Adafruit_MQTT_Publish(&mqtt, ADAFRUIT_IO_USERNAME "/feeds/vaga-placa");
+
+String lastPlate = "";
+
+void MQTT_connect() {
+  int8_t ret;
+
+  if (mqtt.connected()) {
+    return;
+  }
+
+  Serial.print("Conectando ao MQTT... ");
+
+  uint8_t retries = 3;
+
+  while ((ret = mqtt.connect()) != 0) { 
+    Serial.println(mqtt.connectErrorString(ret));
+    Serial.println("Falha ao conectar ao MQTT. Tentando novamente em 5 segundos...");
+    mqtt.disconnect();
+    delay(5000); 
+    retries--;
+
+    if (retries == 0) {
+      Serial.println("Não foi possível conectar ao MQTT. Reiniciando...");
+      ESP.restart();
+    }
+  }
+  Serial.println("MQTT Conectado!");
+}
+
+void sendToAdafruitIO(const char* status, const char* plate) {
+  MQTT_connect(); 
+
+  Serial.printf("Enviando para Adafruit IO -> Status: %s, Placa: %s\n", status, plate);
+
+  if (!vagaStatusFeed.publish(status)) {
+    Serial.println("Falha ao publicar o status da vaga.");
+  } else {
+    Serial.println("Status da vaga publicado com sucesso!");
+  }
+
+  if (!vagaPlacaFeed.publish(plate)) {
+    Serial.println("Falha ao publicar a placa.");
+  } else {
+    Serial.println("Placa publicada com sucesso!");
+  }
+}
+
 
 bool initCamera() {
   camera_config_t config;
@@ -40,7 +97,7 @@ bool initCamera() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   config.frame_size = FRAMESIZE_XGA;
-  config.jpeg_quality = 12;
+  config.jpeg_quality = 12; // 0-63, menor = maior qualidade
   config.fb_count = 1;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
@@ -67,12 +124,12 @@ void captureAndSendImage() {
 
   Serial.printf("Imagem capturada! Tamanho: %zu bytes\n", fb->len);
 
-  WiFiClientSecure client;
-  client.setInsecure();
+  WiFiClientSecure clientSecure;
+  clientSecure.setInsecure();
 
   Serial.printf("Conectando ao host: %s\n", apiHost);
 
-  if (!client.connect(apiHost, 443)) {
+  if (!clientSecure.connect(apiHost, 443)) {
     Serial.println("Falha na conexão com o host!");
     esp_camera_fb_return(fb);
     return;
@@ -88,13 +145,13 @@ void captureAndSendImage() {
 
   uint32_t contentLength = head.length() + fb->len + tail.length();
 
-  client.println("POST " + apiEndpoint + " HTTP/1.1");
-  client.println("Host: " + String(apiHost));
-  client.println("Authorization: Token " + String(apiToken));
-  client.println("Content-Length: " + String(contentLength));
-  client.println("Content-Type: multipart/form-data; boundary=" + boundary);
-  client.println();
-  client.print(head);
+  clientSecure.println("POST " + apiEndpoint + " HTTP/1.1");
+  clientSecure.println("Host: " + String(apiHost));
+  clientSecure.println("Authorization: Token " + String(apiToken));
+  clientSecure.println("Content-Length: " + String(contentLength));
+  clientSecure.println("Content-Type: multipart/form-data; boundary=" + boundary);
+  clientSecure.println();
+  clientSecure.print(head);
 
   uint8_t *buf = fb->buf;
   size_t len = fb->len;
@@ -102,25 +159,27 @@ void captureAndSendImage() {
 
   while (len > 0) {
     size_t to_send = (len > 1024) ? 1024 : len;
-    client.write(buf + sent, to_send);
+    clientSecure.write(buf + sent, to_send);
     sent += to_send;
     len -= to_send;
   }
 
-  client.print(tail);
+  clientSecure.print(tail);
   esp_camera_fb_return(fb);
 
   Serial.println("Imagem enviada. Aguardando resposta...");
 
   long startTime = millis();
-  while (client.connected() && !client.available() && millis() - startTime < 10000) {
+  
+  while (clientSecure.connected() && !clientSecure.available() && millis() - startTime < 10000) {
     delay(100);
   }
 
   String responseBody = "";
   bool headersEnded = false;
-  while (client.available()) {
-    String line = client.readStringUntil('\n');
+
+  while (clientSecure.available()) {
+    String line = clientSecure.readStringUntil('\n');
     if (!headersEnded) {
       if (line == "\r") {
         headersEnded = true;
@@ -129,7 +188,7 @@ void captureAndSendImage() {
       responseBody += line;
     }
   }
-  client.stop();
+  clientSecure.stop();
 
   if (responseBody.length() > 0) {
     Serial.println("Resposta da API recebida:");
@@ -150,14 +209,24 @@ void captureAndSendImage() {
         Serial.print("PLACA RECONHECIDA: ");
         Serial.println(plate);
         Serial.println("======================================");
+        
+        lastPlate = String(plate);
+        sendToAdafruitIO("Ocupado", plate);
+
       } else {
         Serial.println("Nenhuma placa encontrada no primeiro resultado.");
+        sendToAdafruitIO("Ocupado", "N/A");
+        lastPlate = "N/A";
       }
     } else {
       Serial.println("Nenhum resultado de placa retornado pela API.");
+      sendToAdafruitIO("Ocupado", "Erro API");
+      lastPlate = "Erro API";
     }
   } else {
     Serial.println("Nenhuma resposta recebida do servidor ou timeout.");
+    sendToAdafruitIO("Ocupado", "Timeout");
+    lastPlate = "Timeout";
   }
 }
 
@@ -184,22 +253,27 @@ void setup() {
     delay(10000);
     ESP.restart();
   }
+  
+  sendToAdafruitIO("Livre", "");
 
   Serial.println("\nSistema pronto. Aguardando veículo...");
 }
 
 void loop() {
+  MQTT_connect();
+  mqtt.processPackets(100);
+
   objectPresent = (digitalRead(irSensorPin) == LOW);
 
   if (objectPresent && objectDetectedTime == 0) {
-    Serial.println("Veículo detectado. Iniciando contagem de 30 segundos...");
+    Serial.println("Veículo detectado. Iniciando contagem...");
     objectDetectedTime = millis(); 
     imageHasBeenCaptured = false;  
   }
 
   if (objectPresent && objectDetectedTime > 0 && !imageHasBeenCaptured) {
     if (millis() - objectDetectedTime > detectionThreshold) {
-      Serial.println("Veículo estável por mais de 5 minutos. Acionando a captura.");
+      Serial.println("Veículo estável. Acionando a captura.");
       
       captureAndSendImage();
       
@@ -212,6 +286,8 @@ void loop() {
   if (!objectPresent) {
     if (objectDetectedTime > 0) {
         Serial.println("Veículo saiu. Sistema rearmado e pronto para a próxima detecção.");
+        sendToAdafruitIO("Livre", "");
+        lastPlate = "";
     }
     objectDetectedTime = 0;
   }
