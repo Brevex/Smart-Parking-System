@@ -28,7 +28,7 @@
 
 <br><div align="center">
 
-  <h3>Using ESP­-WROOM­-32</h3>   
+  <h3>ESP­-WROOM­-32</h3>   
   
   | Compenent               | Component Pin | ESP32 Pin |
   |:-----------------------:|:-------------:|:---------:|
@@ -43,9 +43,30 @@
   | LCD 16x2 (I2C)          | VCC           | 5V        |
   | Servo                   | SCL           | GPIO13    |
   | Servo                   | VCC           | 5V        |
-  | Buzzer                  | pin2          | GPIO26    |
-  | LED (Blue)              | anode         | GPIO12    |
-  | LED (Red)               | anode         | GPIO14    |
+  | Buzzer                  | +             | GPIO26    |
+  | LED (Blue)              | +             | GPIO12    |
+  | LED (Red)               | +             | GPIO14    |
+
+  <h3>ESP­32-S3-CAM</h3>   
+  
+  | Compenent               | Component Pin | ESP32 Pin |
+  |:-----------------------:|:-------------:|:---------:|
+  | OV2640                  | XCLK          | GPIO15    |
+  | OV2640                  | SIOD          | GPIO04    |
+  | OV2640                  | SIOC          | GPIO05    |
+  | OV2640                  | Y9            | GPIO16    |
+  | OV2640                  | Y8            | GPIO17    |
+  | OV2640                  | Y7            | GPIO18    |
+  | OV2640                  | Y6            | GPIO12    |
+  | OV2640                  | Y5            | GPIO10    |
+  | OV2640                  | Y4            | GPIO08    |
+  | OV2640                  | Y3            | GPIO09    |
+  | OV2640                  | Y2            | GPIO11    |
+  | OV2640                  | VSYNC         | GPIO06    |
+  | OV2640                  | HREF          | GPIO07    |
+  | OV2640                  | PCLK          | GPIO13    |
+  | IR-Sensor               | OUT           | GPIO40    |
+  | IR-Sensor               | VCC           | 5V        |
   
 </div>
 
