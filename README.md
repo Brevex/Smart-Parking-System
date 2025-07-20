@@ -1,4 +1,4 @@
-<h1 align = "center">CAM Parking System</h1><br>
+<h1 align = "center">Smart Parking System</h1><br>
 
 <h2> &#128269; About the project </h2>
 
