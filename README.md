@@ -18,6 +18,14 @@
   <img src="https://github.com/Brevex/Smart-Parking-System/blob/1dd8d60f9f5f8ffcbc1d3cbd6e4647aa81a40c89/readme_images/dashboard.png" alt="circuit">
 </p>
 
+<br><h2> &#128295; ESP32-S3-CAM Config </h2>
+
+<br><p align="center">
+  <img src="https://github.com/Brevex/Smart-Parking-System/blob/fff0a6505212c40b5972e07c6fcf2559b292dc8b/readme_images/cam_config.png" alt="circuit">
+</p><br>
+
+<p>For the firmware to work and properly utilize the board's available resources, apply these settings in the Arduino IDE or your preferred IDE. Failure to use these settings will result in the firmware malfunctioning.</p>
+
 <br><h2> &#128161; How the Circuit Works? </h2>
 
 <br><p align="center">
